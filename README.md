@@ -5,7 +5,8 @@ A search engine project built from scratch in C++20 with custom data structures 
 The project includes the C++20 build and test infrastructure, a minimal CLI, a contiguous
 `minisearch::DynamicArray<T>`, an open-addressed `minisearch::HashTable<Key, Value>`, and
 an array-backed `minisearch::MinHeap<T>`. It also includes a shared ASCII tokenizer for
-documents and queries, an in-memory positional inverted index, and Okapi BM25 scoring.
+documents and queries, an in-memory positional inverted index, Okapi BM25 scoring, and
+heap-based Top-K retrieval.
 Search features are planned in the [roadmap](ROADMAP.md).
 
 ## Build and test
@@ -167,6 +168,45 @@ Link the example with `minisearch_core`. The scores are displayed in document ID
 ```
 
 See [ADR 0007](docs/adr/0007-bm25-ranking.md) for the scoring model and parameter contract.
+
+## Retrieve the best matches
+
+Save this example as `search_example.cpp` and link it with `minisearch_core`.
+
+```cpp
+#include "minisearch/index/inverted_index.hpp"
+#include "minisearch/search/search_engine.hpp"
+
+#include <iomanip>
+#include <iostream>
+
+int main() {
+    minisearch::InvertedIndex index;
+    index.add_document("Database systems");
+    index.add_document("Python supports data structures and algorithms");
+    index.add_document("Python Python Python");
+
+    for (const auto &result : minisearch::search(index, "PYTHON", 2)) {
+        std::cout << result.document_id << ' ' << std::fixed << std::setprecision(12)
+                  << result.score << '\n';
+    }
+}
+```
+
+After building the Debug preset, compile and run the example from the repository root.
+
+```sh
+c++ -std=c++20 -I include search_example.cpp build/debug/libminisearch_core.a -o build/debug/search_example
+./build/debug/search_example
+```
+
+```text
+2 0.768519447821
+1 0.372920912385
+```
+
+The query returns up to two matches, with higher scores first and smaller document IDs
+first on exact ties. See [ADR 0008](docs/adr/0008-top-k-retrieval.md) for details.
 
 ## License
 

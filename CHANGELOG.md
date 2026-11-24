@@ -18,3 +18,5 @@
   statistics, and logical rollback after failed document insertion.
 - Added Okapi BM25 scoring with positive IDF, deterministic query terms, and sparse candidate
   accumulation over the positional index.
+- Added a ranked search API that selects Top-K BM25 matches with a bounded binary MinHeap
+  and breaks exact score ties by ascending document ID.
