@@ -3,7 +3,8 @@
 A search engine project built from scratch in C++20 with custom data structures and information retrieval algorithms.
 
 The project includes the C++20 build and test infrastructure, a minimal CLI, a contiguous
-`minisearch::DynamicArray<T>`, and an open-addressed `minisearch::HashTable<Key, Value>`.
+`minisearch::DynamicArray<T>`, an open-addressed `minisearch::HashTable<Key, Value>`, and
+an array-backed `minisearch::MinHeap<T>`.
 Search features are planned in the [roadmap](ROADMAP.md).
 
 ## Build and test
@@ -63,6 +64,27 @@ int main() {
 
 See the [HashTable decision record](docs/adr/0003-open-addressing-hash-table.md) for
 load limits, pointer invalidation, and complexity.
+
+## Use MinHeap
+
+```cpp
+#include "minisearch/data_structures/min_heap.hpp"
+
+#include <array>
+#include <span>
+
+int main() {
+    constexpr std::array values{7, 1, 5};
+    minisearch::MinHeap<int> heap{std::span<const int>{values}};
+    heap.push(3);
+    heap.pop();
+
+    return heap.top() == 3 ? 0 : 1;
+}
+```
+
+See the [MinHeap decision record](docs/adr/0004-binary-min-heap.md) for ordering,
+type requirements, exception behavior, and bottom-up construction costs.
 
 ## License
 

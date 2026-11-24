@@ -10,3 +10,5 @@
 - Documented the architecture, DynamicArray contract, and development roadmap.
 - Added a generic open-addressed HashTable with linear probing, tombstone reuse, occupancy-based
   rebuilding, and deterministic tests against `std::unordered_map`.
+- Added a DynamicArray-backed binary MinHeap with stateful comparators, linear-time bottom-up
+  construction, and tests for allocation rollback and bounded Top-K selection.
