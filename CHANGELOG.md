@@ -20,3 +20,5 @@
   accumulation over the positional index.
 - Added a ranked search API that selects Top-K BM25 matches with a bounded binary MinHeap
   and breaks exact score ties by ascending document ID.
+- Added an interactive in-memory CLI with text and file indexing, ranked search, corpus
+  statistics, bounded input, and recoverable command errors.
