@@ -71,12 +71,21 @@ if(BUILD_TESTING)
     )
     FetchContent_MakeAvailable(googletest)
 
-    add_executable(minisearch_tests tests/dynamic_array_test.cpp)
+    add_executable(minisearch_tests
+        tests/dynamic_array_test.cpp
+        tests/hash_table_test.cpp
+    )
     target_link_libraries(minisearch_tests PRIVATE minisearch_core GTest::gtest_main)
     minisearch_configure_target(minisearch_tests)
 
+    # Keep the replacement array allocator isolated from the other tests.
+    add_executable(minisearch_allocation_tests tests/hash_table_allocation_test.cpp)
+    target_link_libraries(minisearch_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
+    minisearch_configure_target(minisearch_allocation_tests)
+
     include(GoogleTest)
     gtest_discover_tests(minisearch_tests DISCOVERY_MODE PRE_TEST)
+    gtest_discover_tests(minisearch_allocation_tests DISCOVERY_MODE PRE_TEST)
 
     function(minisearch_add_cli_test name argument exit_code expected_text)
         add_test(
