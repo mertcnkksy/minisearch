@@ -51,6 +51,8 @@ add_library(minisearch_core STATIC
     src/text/tokenizer.cpp
     src/index/inverted_index.cpp
     src/ranking/bm25.cpp
+    src/search/search_engine.cpp
+    src/search/top_k.cpp
 )
 target_compile_features(minisearch_core PUBLIC cxx_std_20)
 target_include_directories(minisearch_core PUBLIC "${PROJECT_SOURCE_DIR}/include")
@@ -83,6 +85,8 @@ if(BUILD_TESTING)
         tests/tokenizer_test.cpp
         tests/inverted_index_test.cpp
         tests/bm25_test.cpp
+        tests/top_k_test.cpp
+        tests/search_engine_test.cpp
     )
     target_include_directories(minisearch_tests PRIVATE "${PROJECT_SOURCE_DIR}/src")
     target_link_libraries(minisearch_tests PRIVATE minisearch_core GTest::gtest_main)
@@ -109,6 +113,11 @@ if(BUILD_TESTING)
     target_link_libraries(minisearch_bm25_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
     minisearch_configure_target(minisearch_bm25_allocation_tests)
 
+    add_executable(minisearch_top_k_allocation_tests tests/top_k_allocation_test.cpp)
+    target_include_directories(minisearch_top_k_allocation_tests PRIVATE "${PROJECT_SOURCE_DIR}/src")
+    target_link_libraries(minisearch_top_k_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
+    minisearch_configure_target(minisearch_top_k_allocation_tests)
+
     include(GoogleTest)
     gtest_discover_tests(minisearch_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_allocation_tests DISCOVERY_MODE PRE_TEST)
@@ -116,6 +125,7 @@ if(BUILD_TESTING)
     gtest_discover_tests(minisearch_tokenizer_allocation_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_index_allocation_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_bm25_allocation_tests DISCOVERY_MODE PRE_TEST)
+    gtest_discover_tests(minisearch_top_k_allocation_tests DISCOVERY_MODE PRE_TEST)
 
     function(minisearch_add_cli_test name argument exit_code expected_text)
         add_test(

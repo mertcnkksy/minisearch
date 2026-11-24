@@ -1,5 +1,6 @@
 #include "minisearch/ranking/bm25.hpp"
 
+#include "bm25_candidates.hpp"
 #include "bm25_math.hpp"
 #include "minisearch/data_structures/hash_table.hpp"
 #include "minisearch/index/inverted_index.hpp"
@@ -25,11 +26,15 @@ std::vector<Token> distinct_query_terms(std::string_view query) {
 
 } // namespace
 
-BM25Scorer::BM25Scorer(BM25Config config) : config_(config) {
+void detail::validate_bm25_config(const BM25Config &config) {
     if (!std::isfinite(config.k1) || config.k1 < 0.0 || !std::isfinite(config.b) ||
         config.b < 0.0 || config.b > 1.0) {
         throw std::invalid_argument("BM25 requires finite k1 >= 0 and finite b in [0, 1]");
     }
+}
+
+BM25Scorer::BM25Scorer(BM25Config config) : config_(config) {
+    detail::validate_bm25_config(config_);
 }
 
 double BM25Scorer::score_document(const InvertedIndex &index, DocumentId document_id,
@@ -60,8 +65,9 @@ double BM25Scorer::score_document(const InvertedIndex &index, DocumentId documen
     return score;
 }
 
-DynamicArray<ScoredDocument> BM25Scorer::score_query(const InvertedIndex &index,
-                                                     std::string_view query) const {
+DynamicArray<ScoredDocument> detail::collect_bm25_candidates(const InvertedIndex &index,
+                                                             std::string_view query,
+                                                             const BM25Config &config) {
     const auto terms = distinct_query_terms(query);
     const auto document_count = index.document_count();
     const auto average_length = index.average_document_length();
@@ -82,7 +88,7 @@ DynamicArray<ScoredDocument> BM25Scorer::score_query(const InvertedIndex &index,
             const auto length = index.document_length(posting.document_id);
             const double contribution =
                 idf *
-                detail::bm25_tf_factor(posting.positions.size(), length, average_length, config_);
+                detail::bm25_tf_factor(posting.positions.size(), length, average_length, config);
             if (const auto *row = rows.find(posting.document_id); row != nullptr) {
                 scores[*row].score += contribution;
             } else {
@@ -91,8 +97,12 @@ DynamicArray<ScoredDocument> BM25Scorer::score_query(const InvertedIndex &index,
             }
         }
     }
+    return scores;
+}
 
-    // Row indices are needed only while accumulating.
+DynamicArray<ScoredDocument> BM25Scorer::score_query(const InvertedIndex &index,
+                                                     std::string_view query) const {
+    auto scores = detail::collect_bm25_candidates(index, query, config_);
     if (scores.size() > 1) {
         std::ranges::sort(scores, {}, &ScoredDocument::document_id);
     }
