@@ -14,3 +14,5 @@
   construction, and tests for allocation rollback and bounded Top-K selection.
 - Added a stateless ASCII tokenizer with owned lowercase terms, zero-based positions, and byte
   offsets. Unsupported bytes report their offset and abort the call.
+- Added an append-only positional inverted index with stable document and term IDs, corpus
+  statistics, and logical rollback after failed document insertion.
