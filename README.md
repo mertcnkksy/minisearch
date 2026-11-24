@@ -5,7 +5,7 @@ A search engine project built from scratch in C++20 with custom data structures 
 The project includes the C++20 build and test infrastructure, a minimal CLI, a contiguous
 `minisearch::DynamicArray<T>`, an open-addressed `minisearch::HashTable<Key, Value>`, and
 an array-backed `minisearch::MinHeap<T>`. It also includes a shared ASCII tokenizer for
-documents and queries.
+documents and queries and an in-memory positional inverted index.
 Search features are planned in the [roadmap](ROADMAP.md).
 
 ## Build and test
@@ -107,6 +107,34 @@ its zero-based position and original half-open byte range. Unsupported bytes rai
 exception with the first offending byte offset. The v0.2.0 Query Engine milestone plans
 UTF-8 validation, Unicode tokenization, ICU integration, NFC normalization, and Turkish
 language support. See [ADR 0005](docs/adr/0005-ascii-tokenizer.md).
+
+## Index documents and inspect postings
+
+```cpp
+#include "minisearch/index/inverted_index.hpp"
+
+#include <iostream>
+
+int main() {
+    minisearch::InvertedIndex index;
+    index.add_document("Python supports data structures.");
+    const auto document = index.add_document("Python is fast. Python supports algorithms.");
+
+    std::cout << "DF=" << index.document_frequency("python")
+              << " TF=" << index.term_frequency("python", document) << '\n';
+    for (const auto &posting : index.find_postings("python")) {
+        std::cout << "document " << posting.document_id << " positions";
+        for (const auto position : posting.positions) {
+            std::cout << ' ' << position;
+        }
+        std::cout << '\n';
+    }
+}
+```
+
+Link the example with `minisearch_core`. Lookups accept exact normalized terms. Reacquire
+posting views after calling `add_document`. See [ADR 0006](docs/adr/0006-positional-inverted-index.md)
+for the API and transaction contract.
 
 ## License
 
