@@ -74,6 +74,7 @@ if(BUILD_TESTING)
     add_executable(minisearch_tests
         tests/dynamic_array_test.cpp
         tests/hash_table_test.cpp
+        tests/min_heap_test.cpp
     )
     target_link_libraries(minisearch_tests PRIVATE minisearch_core GTest::gtest_main)
     minisearch_configure_target(minisearch_tests)
@@ -83,9 +84,14 @@ if(BUILD_TESTING)
     target_link_libraries(minisearch_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
     minisearch_configure_target(minisearch_allocation_tests)
 
+    add_executable(minisearch_heap_allocation_tests tests/min_heap_allocation_test.cpp)
+    target_link_libraries(minisearch_heap_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
+    minisearch_configure_target(minisearch_heap_allocation_tests)
+
     include(GoogleTest)
     gtest_discover_tests(minisearch_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_allocation_tests DISCOVERY_MODE PRE_TEST)
+    gtest_discover_tests(minisearch_heap_allocation_tests DISCOVERY_MODE PRE_TEST)
 
     function(minisearch_add_cli_test name argument exit_code expected_text)
         add_test(
