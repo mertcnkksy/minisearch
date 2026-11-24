@@ -59,8 +59,16 @@ target_include_directories(minisearch_core PUBLIC "${PROJECT_SOURCE_DIR}/include
 target_compile_definitions(minisearch_core PRIVATE MINISEARCH_VERSION="${MINISEARCH_VERSION}")
 minisearch_configure_target(minisearch_core)
 
+add_library(minisearch_cli STATIC
+    src/cli/command_parser.cpp
+    src/cli/file_reader.cpp
+    src/cli/repl.cpp
+)
+target_link_libraries(minisearch_cli PUBLIC minisearch_core)
+minisearch_configure_target(minisearch_cli)
+
 add_executable(minisearch src/main.cpp)
-target_link_libraries(minisearch PRIVATE minisearch_core)
+target_link_libraries(minisearch PRIVATE minisearch_cli)
 minisearch_configure_target(minisearch)
 
 include(CTest)
@@ -92,6 +100,15 @@ if(BUILD_TESTING)
     target_link_libraries(minisearch_tests PRIVATE minisearch_core GTest::gtest_main)
     minisearch_configure_target(minisearch_tests)
 
+    add_executable(minisearch_cli_tests
+        tests/cli_parser_test.cpp
+        tests/cli_repl_test.cpp
+        tests/cli_file_reader_test.cpp
+    )
+    target_include_directories(minisearch_cli_tests PRIVATE "${PROJECT_SOURCE_DIR}/src")
+    target_link_libraries(minisearch_cli_tests PRIVATE minisearch_cli GTest::gtest_main)
+    minisearch_configure_target(minisearch_cli_tests)
+
     # Keep the replacement array allocator isolated from the other tests.
     add_executable(minisearch_allocation_tests tests/hash_table_allocation_test.cpp)
     target_link_libraries(minisearch_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
@@ -120,6 +137,7 @@ if(BUILD_TESTING)
 
     include(GoogleTest)
     gtest_discover_tests(minisearch_tests DISCOVERY_MODE PRE_TEST)
+    gtest_discover_tests(minisearch_cli_tests DISCOVERY_MODE PRE_TEST PROPERTIES TIMEOUT 30)
     gtest_discover_tests(minisearch_allocation_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_heap_allocation_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_tokenizer_allocation_tests DISCOVERY_MODE PRE_TEST)
@@ -127,19 +145,34 @@ if(BUILD_TESTING)
     gtest_discover_tests(minisearch_bm25_allocation_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_top_k_allocation_tests DISCOVERY_MODE PRE_TEST)
 
+    file(WRITE "${PROJECT_BINARY_DIR}/cli-empty-stdin.txt" "")
     function(minisearch_add_cli_test name argument exit_code expected_text)
         add_test(
             NAME "cli.${name}"
             COMMAND "${CMAKE_COMMAND}"
                 "-DCLI=$<TARGET_FILE:minisearch>"
                 "-DARGUMENT=${argument}"
+                "-DINPUT=${PROJECT_BINARY_DIR}/cli-empty-stdin.txt"
                 "-DEXPECTED_EXIT=${exit_code}"
                 "-DEXPECTED_TEXT=${expected_text}"
                 -P "${PROJECT_SOURCE_DIR}/tests/check_cli.cmake"
         )
+        set_tests_properties("cli.${name}" PROPERTIES TIMEOUT 30)
     endfunction()
 
     minisearch_add_cli_test(help --help 0 "Usage: minisearch")
     minisearch_add_cli_test(version --version 0 "minisearch ${MINISEARCH_VERSION}")
     minisearch_add_cli_test(unknown_option --unknown 2 "Unknown argument: --unknown")
+
+    foreach(case IN ITEMS exit eof demo recovery invalid_arguments independent_processes escaped_argument)
+        add_test(
+            NAME "cli.session_${case}"
+            COMMAND "${CMAKE_COMMAND}"
+                "-DCLI=$<TARGET_FILE:minisearch>"
+                "-DCASE=${case}"
+                "-DWORK_DIR=${PROJECT_BINARY_DIR}/cli-session-tests/${case}"
+                -P "${PROJECT_SOURCE_DIR}/tests/check_cli_session.cmake"
+        )
+        set_tests_properties("cli.session_${case}" PROPERTIES TIMEOUT 30)
+    endforeach()
 endif()

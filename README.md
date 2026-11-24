@@ -2,7 +2,7 @@
 
 A search engine project built from scratch in C++20 with custom data structures and information retrieval algorithms.
 
-The project includes the C++20 build and test infrastructure, a minimal CLI, a contiguous
+The project includes the C++20 build and test infrastructure, an interactive CLI, a contiguous
 `minisearch::DynamicArray<T>`, an open-addressed `minisearch::HashTable<Key, Value>`, and
 an array-backed `minisearch::MinHeap<T>`. It also includes a shared ASCII tokenizer for
 documents and queries, an in-memory positional inverted index, Okapi BM25 scoring, and
@@ -25,6 +25,69 @@ ctest --preset debug
 Use the `release` preset for an optimized build and `sanitizers` for a Debug build with
 AddressSanitizer and UndefinedBehaviorSanitizer. Set `-DBUILD_TESTING=OFF` at configuration time
 to build the core and CLI without downloading GoogleTest.
+
+## Search from the terminal
+
+```sh
+cmake --preset release
+cmake --build --preset release
+./build/release/minisearch
+```
+
+Use `help` to see the commands and `exit` or `quit` to leave. The index lives in memory
+for one process. Restarting MiniSearch starts an empty index.
+
+Run this demo from the repository root after building. It creates a temporary plain-text
+file and runs all commands in one session.
+
+```sh
+(
+    set -eu
+    cli="$PWD/build/release/minisearch"
+    demo_dir="$(mktemp -d)"
+    trap 'rm -rf -- "$demo_dir"' EXIT
+    cd "$demo_dir"
+    mkdir documents
+    printf 'Database systems\n' > 'documents/database notes.txt'
+    "$cli" <<'COMMANDS'
+add Python Python Python
+add Python supports data structures and algorithms
+index documents/database notes.txt
+search --top 2 python
+stats
+exit
+COMMANDS
+)
+```
+
+```text
+MiniSearch
+In-memory document search engine.
+Type 'help' for available commands.
+
+minisearch> Indexed document 0.
+minisearch> Indexed document 1.
+minisearch> Indexed document 2.
+minisearch> Rank  Doc ID  Score
+1     0       0.768519
+2     1       0.372921
+
+Returned 2 results.
+minisearch> Documents:      3
+Unique terms:   8
+Total tokens:   11
+Avg. length:    3.666667
+minisearch>
+```
+
+Search defaults to 10 results. Use `search -- <query>` when the query starts with an
+option-like word. Commands and document content have separate limits. A command line
+may contain up to 1 MiB before LF and a file may contain up to 16 MiB. These input
+limits allow additional memory for tokenization, indexing, and search.
+
+Use ASCII for queries and document contents. File paths can contain Unicode and internal
+spaces. `index` uses paths literally, trimming leading and trailing ASCII spaces or tabs.
+Use trusted local files. See [ADR 0009](docs/adr/0009-interactive-cli.md).
 
 ## Use DynamicArray
 
