@@ -5,7 +5,7 @@ A search engine project built from scratch in C++20 with custom data structures 
 The project includes the C++20 build and test infrastructure, a minimal CLI, a contiguous
 `minisearch::DynamicArray<T>`, an open-addressed `minisearch::HashTable<Key, Value>`, and
 an array-backed `minisearch::MinHeap<T>`. It also includes a shared ASCII tokenizer for
-documents and queries and an in-memory positional inverted index.
+documents and queries, an in-memory positional inverted index, and Okapi BM25 scoring.
 Search features are planned in the [roadmap](ROADMAP.md).
 
 ## Build and test
@@ -135,6 +135,38 @@ int main() {
 Link the example with `minisearch_core`. Lookups accept exact normalized terms. Reacquire
 posting views after calling `add_document`. See [ADR 0006](docs/adr/0006-positional-inverted-index.md)
 for the API and transaction contract.
+
+## Score an ASCII query with BM25
+
+```cpp
+#include "minisearch/index/inverted_index.hpp"
+#include "minisearch/ranking/bm25.hpp"
+
+#include <iomanip>
+#include <iostream>
+
+int main() {
+    minisearch::InvertedIndex index;
+    index.add_document("Python Python Python");
+    index.add_document("Python supports data structures and algorithms");
+    index.add_document("Database systems");
+
+    const minisearch::BM25Scorer scorer;
+    for (const auto &result : scorer.score_query(index, "python")) {
+        std::cout << result.document_id << ' ' << std::fixed << std::setprecision(12)
+                  << result.score << '\n';
+    }
+}
+```
+
+Link the example with `minisearch_core`. The scores are displayed in document ID order.
+
+```text
+0 0.768519447821
+1 0.372920912385
+```
+
+See [ADR 0007](docs/adr/0007-bm25-ranking.md) for the scoring model and parameter contract.
 
 ## License
 
