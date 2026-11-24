@@ -16,3 +16,5 @@
   offsets. Unsupported bytes report their offset and abort the call.
 - Added an append-only positional inverted index with stable document and term IDs, corpus
   statistics, and logical rollback after failed document insertion.
+- Added Okapi BM25 scoring with positive IDF, deterministic query terms, and sparse candidate
+  accumulation over the positional index.
