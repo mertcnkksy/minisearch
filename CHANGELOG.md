@@ -8,3 +8,5 @@
 - Added a contiguous DynamicArray with geometric growth, checked access, copy and move support,
   and coverage for allocation failures and seeded comparisons against `std::vector`.
 - Documented the architecture, DynamicArray contract, and development roadmap.
+- Added a generic open-addressed HashTable with linear probing, tombstone reuse, occupancy-based
+  rebuilding, and deterministic tests against `std::unordered_map`.

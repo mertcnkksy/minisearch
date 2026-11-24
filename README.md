@@ -2,9 +2,9 @@
 
 A search engine project built from scratch in C++20 with custom data structures and information retrieval algorithms.
 
-MS-001 establishes the build and test infrastructure, a minimal command-line executable, and
-a contiguous `minisearch::DynamicArray<T>` for types such as `std::uint32_t`. Search features are
-planned in the [roadmap](ROADMAP.md).
+The project includes the C++20 build and test infrastructure, a minimal CLI, a contiguous
+`minisearch::DynamicArray<T>`, and an open-addressed `minisearch::HashTable<Key, Value>`.
+Search features are planned in the [roadmap](ROADMAP.md).
 
 ## Build and test
 
@@ -43,6 +43,26 @@ int main() {
 See the [DynamicArray decision record](docs/adr/0002-dynamic-array.md) for type requirements,
 exception behavior, iterator invalidation, and operation costs. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for the development checks.
+
+## Use HashTable
+
+```cpp
+#include "minisearch/data_structures/hash_table.hpp"
+
+#include <cstdint>
+#include <string>
+
+int main() {
+    minisearch::HashTable<std::string, std::uint32_t> term_ids;
+    term_ids.insert("minisearch", 42U);
+
+    const auto* id = term_ids.find("minisearch");
+    return id != nullptr && *id == 42U ? 0 : 1;
+}
+```
+
+See the [HashTable decision record](docs/adr/0003-open-addressing-hash-table.md) for
+load limits, pointer invalidation, and complexity.
 
 ## License
 
