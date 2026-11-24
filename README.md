@@ -4,7 +4,8 @@ A search engine project built from scratch in C++20 with custom data structures 
 
 The project includes the C++20 build and test infrastructure, a minimal CLI, a contiguous
 `minisearch::DynamicArray<T>`, an open-addressed `minisearch::HashTable<Key, Value>`, and
-an array-backed `minisearch::MinHeap<T>`.
+an array-backed `minisearch::MinHeap<T>`. It also includes a shared ASCII tokenizer for
+documents and queries.
 Search features are planned in the [roadmap](ROADMAP.md).
 
 ## Build and test
@@ -85,6 +86,27 @@ int main() {
 
 See the [MinHeap decision record](docs/adr/0004-binary-min-heap.md) for ordering,
 type requirements, exception behavior, and bottom-up construction costs.
+
+## Tokenize ASCII text
+
+```cpp
+#include "minisearch/text/tokenizer.hpp"
+
+#include <iostream>
+
+int main() {
+    for (const auto &token : minisearch::Tokenizer::tokenize("Hello, World42!")) {
+        std::cout << token.term << " position=" << token.position << " bytes=["
+                  << token.start_offset << ", " << token.end_offset << ")\n";
+    }
+}
+```
+
+Link the example with `minisearch_core`. Each token owns its normalized term and stores
+its zero-based position and original half-open byte range. Unsupported bytes raise an
+exception with the first offending byte offset. The v0.2.0 Query Engine milestone plans
+UTF-8 validation, Unicode tokenization, ICU integration, NFC normalization, and Turkish
+language support. See [ADR 0005](docs/adr/0005-ascii-tokenizer.md).
 
 ## License
 

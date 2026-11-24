@@ -1,7 +1,7 @@
 # MiniSearch project instructions
 
 - Read the task, the relevant architecture records, the roadmap, and the existing code before editing.
-  Stay within the requested milestone. Start MS-002 only with the user's approval.
+  Stay within the requested milestone. Start each new milestone only with the user's approval.
 - Use modern C++20, RAII, target-based CMake, and project headers under `include/minisearch/`.
   Keep the CLI thin and put reusable code in the core library or its public headers.
 - Implement the project's data structures and search algorithms directly. Use STL containers as
