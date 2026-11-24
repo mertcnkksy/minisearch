@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - {name: GCC, cxx: g++-14, package: g++-14}
+          - {name: Clang, cxx: clang++-18, package: clang-18}
+        preset: [debug, release, sanitizers]
+    name: ${{ matrix.toolchain.name }} / ${{ matrix.preset }}
+    env:
+      CXX: ${{ matrix.toolchain.cxx }}
+      PRESET: ${{ matrix.preset }}
+      ASAN_OPTIONS: detect_leaks=1
+      UBSAN_OPTIONS: print_stacktrace=1
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build "$TOOLCHAIN_PACKAGE"
+          if [[ "$CXX" == clang++-18 && "$PRESET" == sanitizers ]]; then
+            sudo apt-get install -y --no-install-recommends libclang-rt-18-dev
+          fi
+        env:
+          TOOLCHAIN_PACKAGE: ${{ matrix.toolchain.package }}
+      - run: cmake --preset "$PRESET"
+      - run: cmake --build --preset "$PRESET" --parallel 2
+      - run: ctest --preset "$PRESET"
+
+  static-checks:
+    runs-on: ubuntu-24.04
+    env:
+      CXX: clang++-18
+      CLANG_FORMAT: clang-format-18
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build clang-18 clang-format-18 clang-tidy-18
+      - run: scripts/check-format.sh
+      - run: cmake --preset debug -DMINISEARCH_ENABLE_CLANG_TIDY=ON -DMINISEARCH_CLANG_TIDY=clang-tidy-18
+      - run: cmake --build --preset debug --parallel 2

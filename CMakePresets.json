@@ -1,0 +1,47 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "inherits": "base",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+    {
+      "name": "sanitizers",
+      "displayName": "Debug with ASan and UBSan",
+      "inherits": "debug",
+      "cacheVariables": {
+        "MINISEARCH_ENABLE_ASAN": "ON",
+        "MINISEARCH_ENABLE_UBSAN": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "debug", "configurePreset": "debug" },
+    { "name": "release", "configurePreset": "release" },
+    { "name": "sanitizers", "configurePreset": "sanitizers" }
+  ],
+  "testPresets": [
+    { "name": "debug", "configurePreset": "debug", "output": { "outputOnFailure": true }, "execution": { "noTestsAction": "error" } },
+    { "name": "release", "configurePreset": "release", "output": { "outputOnFailure": true }, "execution": { "noTestsAction": "error" } },
+    { "name": "sanitizers", "configurePreset": "sanitizers", "output": { "outputOnFailure": true }, "execution": { "noTestsAction": "error" } }
+  ]
+}
