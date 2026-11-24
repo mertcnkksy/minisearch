@@ -46,7 +46,10 @@ function(minisearch_configure_target target)
     endif()
 endfunction()
 
-add_library(minisearch_core STATIC src/version.cpp)
+add_library(minisearch_core STATIC
+    src/version.cpp
+    src/text/tokenizer.cpp
+)
 target_compile_features(minisearch_core PUBLIC cxx_std_20)
 target_include_directories(minisearch_core PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_compile_definitions(minisearch_core PRIVATE MINISEARCH_VERSION="${MINISEARCH_VERSION}")
@@ -75,7 +78,9 @@ if(BUILD_TESTING)
         tests/dynamic_array_test.cpp
         tests/hash_table_test.cpp
         tests/min_heap_test.cpp
+        tests/tokenizer_test.cpp
     )
+    target_include_directories(minisearch_tests PRIVATE "${PROJECT_SOURCE_DIR}/src")
     target_link_libraries(minisearch_tests PRIVATE minisearch_core GTest::gtest_main)
     minisearch_configure_target(minisearch_tests)
 
@@ -88,10 +93,15 @@ if(BUILD_TESTING)
     target_link_libraries(minisearch_heap_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
     minisearch_configure_target(minisearch_heap_allocation_tests)
 
+    add_executable(minisearch_tokenizer_allocation_tests tests/tokenizer_allocation_test.cpp)
+    target_link_libraries(minisearch_tokenizer_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
+    minisearch_configure_target(minisearch_tokenizer_allocation_tests)
+
     include(GoogleTest)
     gtest_discover_tests(minisearch_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_allocation_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_heap_allocation_tests DISCOVERY_MODE PRE_TEST)
+    gtest_discover_tests(minisearch_tokenizer_allocation_tests DISCOVERY_MODE PRE_TEST)
 
     function(minisearch_add_cli_test name argument exit_code expected_text)
         add_test(

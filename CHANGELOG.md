@@ -12,3 +12,5 @@
   rebuilding, and deterministic tests against `std::unordered_map`.
 - Added a DynamicArray-backed binary MinHeap with stateful comparators, linear-time bottom-up
   construction, and tests for allocation rollback and bounded Top-K selection.
+- Added a stateless ASCII tokenizer with owned lowercase terms, zero-based positions, and byte
+  offsets. Unsupported bytes report their offset and abort the call.
