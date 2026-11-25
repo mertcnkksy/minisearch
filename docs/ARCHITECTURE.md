@@ -36,6 +36,11 @@ integration, NFC normalization, and Turkish language support.
 CLI modules. CTest also invokes the real executable with bounded input and timeouts. The
 build enables compiler warnings and optional sanitizer and analysis flags on project targets.
 
+Integration tests compare the core and CLI with an independent brute-force oracle.
+Opt-in fuzzers link separate instrumented core and parser targets. The normal
+executable and its libraries use the regular compiler configuration. See
+[Testing](TESTING.md) for the test boundaries and verification commands.
+
 See [ADR 0001](adr/0001-project-architecture.md) for the target boundaries,
 [ADR 0002](adr/0002-dynamic-array.md) for DynamicArray,
 [ADR 0003](adr/0003-open-addressing-hash-table.md) for HashTable,

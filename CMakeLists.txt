@@ -5,6 +5,7 @@ project(MiniSearch VERSION 0.1.0 LANGUAGES CXX)
 option(MINISEARCH_ENABLE_ASAN "Enable AddressSanitizer on MiniSearch targets" OFF)
 option(MINISEARCH_ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer on MiniSearch targets" OFF)
 option(MINISEARCH_ENABLE_CLANG_TIDY "Run clang-tidy on MiniSearch targets" OFF)
+option(MINISEARCH_ENABLE_FUZZING "Build separate Clang libFuzzer targets" OFF)
 
 set(MINISEARCH_VERSION "${PROJECT_VERSION}-dev")
 
@@ -46,7 +47,7 @@ function(minisearch_configure_target target)
     endif()
 endfunction()
 
-add_library(minisearch_core STATIC
+set(minisearch_core_sources
     src/version.cpp
     src/text/tokenizer.cpp
     src/index/inverted_index.cpp
@@ -54,6 +55,7 @@ add_library(minisearch_core STATIC
     src/search/search_engine.cpp
     src/search/top_k.cpp
 )
+add_library(minisearch_core STATIC ${minisearch_core_sources})
 target_compile_features(minisearch_core PUBLIC cxx_std_20)
 target_include_directories(minisearch_core PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_compile_definitions(minisearch_core PRIVATE MINISEARCH_VERSION="${MINISEARCH_VERSION}")
@@ -70,6 +72,10 @@ minisearch_configure_target(minisearch_cli)
 add_executable(minisearch src/main.cpp)
 target_link_libraries(minisearch PRIVATE minisearch_cli)
 minisearch_configure_target(minisearch)
+
+if(MINISEARCH_ENABLE_FUZZING)
+    add_subdirectory(tests/fuzz)
+endif()
 
 include(CTest)
 if(BUILD_TESTING)
@@ -135,15 +141,42 @@ if(BUILD_TESTING)
     target_link_libraries(minisearch_top_k_allocation_tests PRIVATE minisearch_core GTest::gtest_main)
     minisearch_configure_target(minisearch_top_k_allocation_tests)
 
+    add_library(minisearch_test_reference STATIC tests/integration/reference_search.cpp)
+    target_compile_features(minisearch_test_reference PUBLIC cxx_std_20)
+    target_include_directories(minisearch_test_reference PUBLIC
+        "${PROJECT_SOURCE_DIR}/tests" "${PROJECT_SOURCE_DIR}/tests/integration")
+    minisearch_configure_target(minisearch_test_reference)
+
+    add_executable(minisearch_integration_tests
+        tests/integration/search_pipeline_test.cpp tests/integration/cli_session_test.cpp)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        target_sources(minisearch_integration_tests PRIVATE tests/integration/cli_linux_io_test.cpp)
+    endif()
+    target_include_directories(minisearch_integration_tests PRIVATE "${PROJECT_SOURCE_DIR}/src")
+    target_link_libraries(minisearch_integration_tests PRIVATE
+        minisearch_cli minisearch_test_reference GTest::gtest_main)
+    minisearch_configure_target(minisearch_integration_tests)
+
+    add_executable(minisearch_cli_allocation_tests tests/integration/cli_allocation_test.cpp)
+    target_include_directories(minisearch_cli_allocation_tests PRIVATE "${PROJECT_SOURCE_DIR}/src")
+    target_link_libraries(minisearch_cli_allocation_tests PRIVATE minisearch_cli GTest::gtest_main)
+    minisearch_configure_target(minisearch_cli_allocation_tests)
+
+    add_executable(minisearch_cli_fixture tests/integration/cli_fixture.cpp)
+    target_link_libraries(minisearch_cli_fixture PRIVATE minisearch_test_reference)
+    minisearch_configure_target(minisearch_cli_fixture)
+
     include(GoogleTest)
     gtest_discover_tests(minisearch_tests DISCOVERY_MODE PRE_TEST)
     gtest_discover_tests(minisearch_cli_tests DISCOVERY_MODE PRE_TEST PROPERTIES TIMEOUT 30)
-    gtest_discover_tests(minisearch_allocation_tests DISCOVERY_MODE PRE_TEST)
-    gtest_discover_tests(minisearch_heap_allocation_tests DISCOVERY_MODE PRE_TEST)
-    gtest_discover_tests(minisearch_tokenizer_allocation_tests DISCOVERY_MODE PRE_TEST)
-    gtest_discover_tests(minisearch_index_allocation_tests DISCOVERY_MODE PRE_TEST)
-    gtest_discover_tests(minisearch_bm25_allocation_tests DISCOVERY_MODE PRE_TEST)
-    gtest_discover_tests(minisearch_top_k_allocation_tests DISCOVERY_MODE PRE_TEST)
+    foreach(target IN ITEMS minisearch_allocation_tests minisearch_heap_allocation_tests
+            minisearch_tokenizer_allocation_tests minisearch_index_allocation_tests
+            minisearch_bm25_allocation_tests minisearch_top_k_allocation_tests
+            minisearch_cli_allocation_tests)
+        gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST PROPERTIES LABELS allocation TIMEOUT 60)
+    endforeach()
+    gtest_discover_tests(minisearch_integration_tests DISCOVERY_MODE PRE_TEST
+        PROPERTIES LABELS integration TIMEOUT 90)
 
     file(WRITE "${PROJECT_BINARY_DIR}/cli-empty-stdin.txt" "")
     function(minisearch_add_cli_test name argument exit_code expected_text)
@@ -175,4 +208,22 @@ if(BUILD_TESTING)
         )
         set_tests_properties("cli.session_${case}" PROPERTIES TIMEOUT 30)
     endforeach()
+
+    foreach(case IN ITEMS lf crlf)
+        add_test(NAME "integration.cli_${case}"
+            COMMAND "${CMAKE_COMMAND}"
+                "-DCLI=$<TARGET_FILE:minisearch>"
+                "-DFIXTURE=$<TARGET_FILE:minisearch_cli_fixture>"
+                "-DCASE=${case}"
+                "-DWORK_DIR=${PROJECT_BINARY_DIR}/integration-fixtures/${case}"
+                -P "${PROJECT_SOURCE_DIR}/tests/integration/check_end_to_end.cmake")
+        set_tests_properties("integration.cli_${case}" PROPERTIES LABELS "integration;cli" TIMEOUT 45)
+    endforeach()
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        add_executable(minisearch_closed_stdout tests/integration/closed_stdout.cpp)
+        target_compile_features(minisearch_closed_stdout PRIVATE cxx_std_20)
+        minisearch_configure_target(minisearch_closed_stdout)
+        add_test(NAME integration.closed_stdout COMMAND minisearch_closed_stdout "$<TARGET_FILE:minisearch>")
+        set_tests_properties(integration.closed_stdout PROPERTIES LABELS "integration;cli" TIMEOUT 20)
+    endif()
 endif()

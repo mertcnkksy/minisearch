@@ -22,3 +22,5 @@
   and breaks exact score ties by ascending document ID.
 - Added an interactive in-memory CLI with text and file indexing, ranked search, corpus
   statistics, bounded input, and recoverable command errors.
+- Added independent search and CLI integration checks, allocation and I/O regressions,
+  opt-in Clang fuzz targets, and release-readiness documentation.
