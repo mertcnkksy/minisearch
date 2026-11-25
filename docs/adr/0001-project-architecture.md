@@ -24,5 +24,5 @@ clang-tidy. Keep build diagnostics scoped to project targets.
 
 Unit tests and later frontends share the same library target. The core and CLI build with
 the C++ standard library alone. Enabling tests requires the pinned GoogleTest archive at
-first configure. The development version is reported as `0.1.0-dev` while the MVP is
-still in progress.
+first configure. During MVP development the CLI reported `0.1.0-dev`. MS-010 sets the
+CLI version to `0.1.0` using the CMake project version.

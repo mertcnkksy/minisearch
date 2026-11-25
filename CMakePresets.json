@@ -25,6 +25,17 @@
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
     },
     {
+      "name": "release-cli",
+      "displayName": "Release without tests",
+      "inherits": "release",
+      "cacheVariables": {
+        "BUILD_TESTING": "OFF",
+        "MINISEARCH_ENABLE_ASAN": "OFF",
+        "MINISEARCH_ENABLE_UBSAN": "OFF",
+        "MINISEARCH_ENABLE_FUZZING": "OFF"
+      }
+    },
+    {
       "name": "sanitizers",
       "displayName": "Debug with ASan and UBSan",
       "inherits": "debug",
@@ -37,6 +48,7 @@
   "buildPresets": [
     { "name": "debug", "configurePreset": "debug" },
     { "name": "release", "configurePreset": "release" },
+    { "name": "release-cli", "configurePreset": "release-cli" },
     { "name": "sanitizers", "configurePreset": "sanitizers" }
   ],
   "testPresets": [

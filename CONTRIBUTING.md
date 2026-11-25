@@ -1,6 +1,6 @@
 # Contributing
 
-Use a C++20 compiler, CMake 3.24 or newer, and Ninja. Install clang-format and clang-tidy
+Use Git, a C++20 compiler, CMake 3.24 or newer, and Ninja. Install clang-format and clang-tidy
 for local formatting and analysis. CI uses GCC 14, Clang 18, and LLVM 18 analysis tools on
 Ubuntu 24.04.
 
@@ -31,6 +31,9 @@ cmake --build build/tidy
 
 Use `CLANG_FORMAT` to select your installed formatter. If multiple clang-tidy versions are
 installed, select one with `-DMINISEARCH_CLANG_TIDY=/path/to/clang-tidy`.
+
+Use the separate `release-cli` preset for a build without tests. For a full compiler matrix,
+sanitizer settings, and fuzz smoke commands, see [Testing](docs/TESTING.md).
 
 ## Changes and verification
 

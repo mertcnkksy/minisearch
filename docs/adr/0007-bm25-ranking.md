@@ -122,15 +122,13 @@ O(C) space, and rehash and array growth can briefly keep old and new buffers. Si
 document scoring uses O(B + T) temporary space and no candidate map. There is no O(N)
 initialization or scan for a sparse query.
 
-## Known limitations and future Top-K integration
+## Known limitations and Top-K integration
 
 ASCII processing follows the tokenizer. Unicode and Turkish analysis remain in v0.2.0
 Query Engine. The scorer supplies raw scores and document IDs in ID order. BM25 treats
 query terms as a set and uses no position or phrase bonuses. There is no score cache.
 
 `ScoredDocument` is trivially copyable, default-constructible, and nonthrowing to move.
-A future heap can place the worst selected result at its root using ascending score
-and descending document ID for ties. This means higher score wins and smaller
-document ID breaks an exact tie. The comparator must implement a nonthrowing strict
-weak ordering over finite scores. Only a compatibility test exercises the existing
-heap in MS-006.
+MS-006 established heap compatibility. MS-007 uses the bounded heap to place the
+worst selected result at its root, with lower scores first and larger document IDs
+first on ties. See [ADR 0008](0008-top-k-retrieval.md) for the ranked search contract.

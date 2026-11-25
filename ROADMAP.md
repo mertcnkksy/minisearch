@@ -2,8 +2,8 @@
 
 | Milestone | Scope | Status |
 | --- | --- | --- |
-| v0.1.0 Foundation & MVP | MS-001 establishes the build, tests, CLI skeleton, and DynamicArray. MS-002 adds the Open Addressing Hash Table. MS-003 adds the Binary Min Heap. MS-004 adds the ASCII Document Tokenizer. MS-005 adds the Positional Inverted Index. MS-008 adds the MVP interactive indexing and search flow. | MS-001 through MS-005 and MS-008 implemented. MS-009 integration and release-readiness checks added. Remaining work planned. |
-| v0.2.0 Query Engine | Positional index, Boolean and phrase search, BM25 and TF-IDF, DAAT processing, UTF-8 validation, Unicode tokenization, ICU integration, NFC normalization, and Turkish language support. | MS-006 core BM25 scoring and MS-007 Top-K retrieval implemented. Remaining work planned. |
+| v0.1.0 Foundation & MVP | C++20 project foundation and DynamicArray (MS-001), open-addressed HashTable (MS-002), binary MinHeap (MS-003), ASCII tokenizer (MS-004), positional inverted index (MS-005), core BM25 (MS-006), Top-K retrieval (MS-007), interactive CLI (MS-008), integration and fuzz testing (MS-009), and release preparation (MS-010). | MVP implemented. Review, hosted verification, and publication are tracked in MS-010B. |
+| v0.2.0 Query Engine | Query parsing, Boolean and phrase search, TF-IDF, DAAT processing, UTF-8 validation, Unicode tokenization, ICU integration, NFC normalization, Turkish language support, and IR evaluation. Extends the existing positional index, BM25, and Top-K retrieval. | Planned |
 | v0.3.0 Storage Engine | Delta and Variable Byte encoding, immutable segments, tombstones and merging, CRC32, and crash-safe storage. | Planned |
 | v0.4.0 Concurrent Engine | Multithreaded indexing and an LRU cache. | Planned |
 | v0.5.0 Advanced Search | Trie and Radix Trie, BK-tree and SymSpell, and English text processing. | Planned |
