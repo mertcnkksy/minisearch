@@ -26,6 +26,9 @@ Use the `release` preset for an optimized build and `sanitizers` for a Debug bui
 AddressSanitizer and UndefinedBehaviorSanitizer. Set `-DBUILD_TESTING=OFF` at configuration time
 to build the core and CLI without downloading GoogleTest.
 
+See [Testing](docs/TESTING.md) for the independent search oracle, integration tests,
+release-readiness checks, and opt-in fuzzing.
+
 ## Search from the terminal
 
 ```sh
