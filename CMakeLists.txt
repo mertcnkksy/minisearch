@@ -7,7 +7,7 @@ option(MINISEARCH_ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer on MiniSearch 
 option(MINISEARCH_ENABLE_CLANG_TIDY "Run clang-tidy on MiniSearch targets" OFF)
 option(MINISEARCH_ENABLE_FUZZING "Build separate Clang libFuzzer targets" OFF)
 
-set(MINISEARCH_VERSION "${PROJECT_VERSION}-dev")
+set(MINISEARCH_VERSION "${PROJECT_VERSION}")
 
 if(MINISEARCH_ENABLE_ASAN OR MINISEARCH_ENABLE_UBSAN)
     if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$" OR
@@ -179,7 +179,7 @@ if(BUILD_TESTING)
         PROPERTIES LABELS integration TIMEOUT 90)
 
     file(WRITE "${PROJECT_BINARY_DIR}/cli-empty-stdin.txt" "")
-    function(minisearch_add_cli_test name argument exit_code expected_text)
+    function(minisearch_add_cli_test name argument exit_code expected_text exact_match)
         add_test(
             NAME "cli.${name}"
             COMMAND "${CMAKE_COMMAND}"
@@ -188,14 +188,16 @@ if(BUILD_TESTING)
                 "-DINPUT=${PROJECT_BINARY_DIR}/cli-empty-stdin.txt"
                 "-DEXPECTED_EXIT=${exit_code}"
                 "-DEXPECTED_TEXT=${expected_text}"
+                "-DEXACT_MATCH=${exact_match}"
                 -P "${PROJECT_SOURCE_DIR}/tests/check_cli.cmake"
         )
         set_tests_properties("cli.${name}" PROPERTIES TIMEOUT 30)
     endfunction()
 
-    minisearch_add_cli_test(help --help 0 "Usage: minisearch")
-    minisearch_add_cli_test(version --version 0 "minisearch ${MINISEARCH_VERSION}")
-    minisearch_add_cli_test(unknown_option --unknown 2 "Unknown argument: --unknown")
+    minisearch_add_cli_test(help --help 0 "Usage: minisearch" OFF)
+    # Keep the release expectation independent of the compiled version definition.
+    minisearch_add_cli_test(version --version 0 "minisearch 0.1.0" ON)
+    minisearch_add_cli_test(unknown_option --unknown 2 "Unknown argument: --unknown" OFF)
 
     foreach(case IN ITEMS exit eof demo recovery invalid_arguments independent_processes escaped_argument)
         add_test(
